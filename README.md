@@ -30,3 +30,5 @@
 请先运行 `init_config.py` 生成配置文件，按照程序操作后，将会自动生成包含账号密码、寝室号的配置文件 `config.yaml`.
 
 配置文件生成后，即可运行 `main.py` 查询电费，可添加 crontab 定时运行指令 `python main.py`.
+
+注意：由于程序使用相对路径，crontab 运行时需要先 cd 到程序根目录再运行 `main.py`，否则程序将找不到 `config.yaml` 而报错。
