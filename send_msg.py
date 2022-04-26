@@ -12,7 +12,7 @@ mail = False
 # 如果有cqhttp配置，则读取
 if "cqhttp" in config_all["msg"].keys():
     cqhttp = True
-    url = "http://" + config_all["msg"]["cqhttp"]["url"] + "/send_msg"
+    url = config_all["msg"]["cqhttp"]["url"]
     uid = config_all["msg"]["cqhttp"]["uid"]
     gid = config_all["msg"]["cqhttp"]["gid"]
 # 如果有邮箱配置，则读取
