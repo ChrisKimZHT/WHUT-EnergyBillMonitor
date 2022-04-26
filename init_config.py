@@ -1,7 +1,8 @@
 import requests
 import yaml
-
-# import smtplib
+import smtplib
+from email.mime.text import MIMEText
+from email.utils import formataddr
 
 # http 请求头
 headers = {
@@ -155,16 +156,12 @@ def try_get_data(roomno, factorycode, area):
 
 def init_msg():
     global config_dict
-    msg_dict = {
-        "typ": 0
-    }
-    print("[1] cqhttp\n"
-          "[暂不支持] 邮件\n"
-          "选择发信方式：")
-    choice_msg = int(input())
-    if choice_msg == 1:
+    msg_dict = dict()
+    print("是否配置cqhttp？输入Y确认：")
+    choice_cqhttp = input()
+    if choice_cqhttp == "Y" or choice_cqhttp == "y":
         cqhttp_dict = {
-            "url": "127.0.0.1:5700",
+            "url": "http://127.0.0.1:5700/send_msg",
             "uid": "",
             "gid": ""
         }
@@ -172,7 +169,7 @@ def init_msg():
         print("输入cqhttp的http监听地址和端口（留空默认为127.0.0.1:5700）：")
         input_url = input()
         if input_url != "":
-            cqhttp_dict["url"] = input_url
+            cqhttp_dict["url"] = "http://" + input_url + "/send_msg"
         print("输入收信QQ号（留空则不发送私聊）：")
         input_uid = input()
         if input_uid != "":
@@ -181,28 +178,70 @@ def init_msg():
         input_gid = input()
         if input_gid != "":
             cqhttp_dict["gid"] = input_gid
-        msg_dict["cqhttp"] = cqhttp_dict
-        config_dict["msg"] = msg_dict
-        try_send_qq_msg()
+        try_send_qq_msg(cqhttp_dict)
         print("已发送测试消息，注意查收")
-    # elif choice_msg == 2:
-    #     pass
+        msg_dict["cqhttp"] = cqhttp_dict
+    print("是否配置邮件？输入Y确认：")
+    choice_mail = input()
+    if choice_mail == "Y" or choice_mail == "y":
+        mail_dict = {
+            "ssl": False,
+            "host": "",
+            "port": 25,
+            "account": "",
+            "password": "",
+            "sender": "",
+            "receiver": ""
+        }
+        print("是否使用SSL邮件？输入Y确认：")
+        choice_ssl = input()
+        if choice_ssl == "Y" or choice_ssl == "y":
+            mail_dict["ssl"] = True
+        print("输入SMTP服务器地址（如smtp.qq.com）：")
+        mail_dict["host"] = input()
+        print("输入SMTP服务器端口（如465）：")
+        mail_dict["port"] = int(input())
+        print("输入账号：")
+        mail_dict["account"] = input()
+        print("输入密码：")
+        mail_dict["password"] = input()
+        print("输入发件人邮箱：")
+        mail_dict["sender"] = input()
+        print("输入收件人邮箱：")
+        mail_dict["receiver"] = input()
+        try_send_mail(mail_dict)
+        print("已发送测试消息，注意查收")
+        msg_dict["mail"] = mail_dict
+    config_dict["msg"] = msg_dict
 
 
-def try_send_qq_msg():
-    url = "http://" + config_dict["msg"]["cqhttp"]["url"] + "/send_msg"
+def try_send_qq_msg(config):
+    url = config["url"]
     data_user = {
-        "user_id": config_dict["msg"]["cqhttp"]["uid"],
-        "message": "这是一条来自WHUT-EnergyBillMonitor的测试消息"
+        "user_id": config["uid"],
+        "message": "【WHUT-EnergyBillMonitor】\n发送cqhttp私聊测试"
     }
     data_group = {
-        "group_id": config_dict["msg"]["cqhttp"]["gid"],
-        "message": "这是一条来自WHUT-EnergyBillMonitor的测试消息"
+        "group_id": config["gid"],
+        "message": "【WHUT-EnergyBillMonitor】\n发送cqhttp群聊测试"
     }
     if data_user["user_id"] != "":
         requests.get(url, params=data_user)
     if data_group["group_id"] != "":
         requests.get(url, params=data_group)
+
+
+def try_send_mail(config):
+    if config["ssl"]:
+        mail = smtplib.SMTP_SSL(config["host"], config["port"])
+    else:
+        mail = smtplib.SMTP_SSL(config["host"], config["port"])
+    mail.login(config["account"], config["password"])
+    msg = MIMEText("若收到该邮件，则SMTP配置无误", "plain", "utf-8")
+    msg["From"] = formataddr(["WHUT-EnergyBillMonitor", config["sender"]])
+    msg["Subject"] = "【WHUT-EnergyBillMonitor】邮件发送测试"
+    mail.sendmail(config["sender"], config["receiver"], msg.as_string())
+    mail.close()
 
 
 def save_config():
@@ -229,3 +268,4 @@ def init():
 
 
 init()
+# try_send_mail()
