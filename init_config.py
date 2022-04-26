@@ -23,30 +23,32 @@ headers = {
 session = requests.session()
 
 # 配置变量
-config_dict = {
-    "account": "",
-    "password": "",
-    "room": {},
-    "msg": {}
+config_all = {
+    "account": "",  # 账号
+    "password": "",  # 密码
+    "room": {},  # 房间信息
+    "msg": {}  # 发信配置
 }
 
 
+# 账号配置文件初始化
 def init_account():
-    global config_dict
+    global config_all
     print("输入账号（通常为学号）：")
     account = input()
     print("输入密码（默认为身份证后六位）：")
     password = input()
     if try_login(account, password):
         print("登陆成功")
-        config_dict["account"] = account
-        config_dict["password"] = password
+        config_all["account"] = account
+        config_all["password"] = password
         return True
     else:
-        print("登录失败")
+        print("登录失败，请重试")
         return False
 
 
+# 尝试登录
 def try_login(account, password):
     global session
     url = "http://cwsf.whut.edu.cn/MNetWorkUI/userLoginAction!mobileUserLogin.action"
@@ -58,78 +60,96 @@ def try_login(account, password):
         return False
 
 
+# 房间配置初始化
 def init_room():
     print("[1] 余家头电费\n"
-          "[暂不支持] 马房山学生电费\n"
-          "[暂不支持] 马房山电费\n"
+          "[X] 马房山学生电费\n"
+          "[X] 马房山电费\n"
           "选择区域：")
-    choice = int(input())
-    if choice == 1:
-        if yujiatou_room():
-            return True
-    # elif choice == 2:
-    #     mafangshan_stu_room()
-    # elif choice == 3:
-    #     mafangshan_room()
+    try:
+        choice = int(input())
+    except ValueError:
+        print("输入错误")
+        return False
+    print("注意：此部分无输入检查，请仔细输入序号，否则无法查到正确的电费")
+    if choice == 1 and yjt_room():
+        return True
+    elif choice == 2 and mfs_room_stu():
+        return True
+    elif choice == 3 and mfs_room():
+        return True
+    else:
+        print("输入错误")
     return False
 
 
-def yujiatou_room():
-    global config_dict
-    room_dict = {
+# 余家头房间查询
+def yjt_room():
+    global config_all
+    config_room = {
         "factorycode": "",
         "area": "",
         "AreaID": "",
-        "ArchitectureID": "",
-        "floor": "",
-        "roomno": "",
+        "ArchitectureID": "",  # 宿舍楼编号
+        "floor": "",  # 楼层
+        "roomno": ""  # 宿舍电表号
     }
     print("[1] 学生区域: 余家头校区\n"
-          "[暂不支持] 教工区域: 家属区\n"
+          "[X] 教工区域: 家属区\n"
           "选择区域：")
-    choice_area = int(input())
+    try:
+        choice_area = int(input())
+    except ValueError:
+        print("输入错误")
+        return False
     if choice_area == 1:
-        room_dict["factorycode"] = "E023"
-        room_dict["area"] = "9004"
-    # elif choice_area == 2:
-    #     pass
+        config_room["factorycode"] = "E023"
+        config_room["area"] = "9004"
+    elif choice_area == 2:
+        return False  # 还没写家属区
+    # 查Area_ID
     respounce_areaid = session.post(
         url="http://cwsf.whut.edu.cn/MNetWorkUI/elecManage!queryCampusList10497", headers=headers,
-        data=f"factorycode={room_dict['factorycode']}&area={room_dict['area']}"
+        data=f"factorycode={config_room['factorycode']}&area={config_room['area']}"
     ).json()
     for row in respounce_areaid["buildinglist"]:
         print(f"[{row['AreaID']}] {row['AreaName']}")
     print("选择校区：")
-    room_dict["AreaID"] = input()
+    config_room["AreaID"] = input()
+    # 查ArchitectureID
     respounce_architectureid = session.post(
         url="http://cwsf.whut.edu.cn/MNetWorkUI/elecManage!queryFloorsList10497", headers=headers,
-        data=f"Area_ID={room_dict['AreaID']}&factorycode={room_dict['factorycode']}&area={room_dict['area']}"
+        data=f"Area_ID={config_room['AreaID']}&factorycode={config_room['factorycode']}&area={config_room['area']}"
     ).json()
     for row in respounce_architectureid["buildinglist"]:
         print(f"[{row['ArchitectureID']}] {row['ArchitectureName']}")
     print("选择楼栋：")
-    room_dict["ArchitectureID"] = input()
-    floor_begin = 0
-    floor_end = 0
+    config_room["ArchitectureID"] = input()
+    # 获取楼层起始结尾值
+    floor_begin = int()
+    floor_end = int()
     for row in respounce_architectureid["buildinglist"]:
-        if row["ArchitectureID"] == room_dict["ArchitectureID"]:
+        if row["ArchitectureID"] == config_room["ArchitectureID"]:
             floor_begin = row["ArchitectureBegin"]
             floor_end = row["ArchitectureStorys"]
     print(f"当前楼栋可选楼层为{floor_begin}~{floor_end}\n"
           f"选择楼层：")
-    room_dict["floor"] = input()
+    config_room["floor"] = input()
+    # 获取AmMeter_ID
     respounce_ammeterid = session.post(
         url="http://cwsf.whut.edu.cn/MNetWorkUI/elecManage!queryRoomList10497", headers=headers,
-        data=f"floor={room_dict['floor']}&ArchitectureID={room_dict['ArchitectureID']}&factorycode={room_dict['factorycode']}&area={room_dict['area']}"
+        data=f"floor={config_room['floor']}&ArchitectureID={config_room['ArchitectureID']}&factorycode={config_room['factorycode']}&area={config_room['area']}"
     ).json()
     for row in respounce_ammeterid["roomlist"]:
         print(f"[{row['AmMeter_ID']} {row['RoomName']}]")
     print("选择房间：")
-    room_dict["roomno"] = input()
-    respounce = try_get_data(room_dict["roomno"], room_dict["factorycode"], room_dict["area"])
+    config_room["roomno"] = input()
+    # 尝试查询电费
+    respounce = session.post(url="http://cwsf.whut.edu.cn/MNetWorkUI/elecManage!querySydl10497", headers=headers,
+                             data=f"roomno={config_room['roomno']}&factorycode={config_room['factorycode']}&area={config_room['area']}").json()
     if respounce["returncode"] == "SUCCESS":
-        config_dict["room"] = room_dict
-        print("查询成功\n"
+        config_all["room"] = config_room
+        print("查询成功，结果预览：\n"
               f"剩余电量：{respounce['roomlist']['remainPower']} kW·h\n"
               f"累计电量：{respounce['roomlist']['ZVlaue']} kW·h\n"
               f"查表时间：{respounce['roomlist']['readTime']}")
@@ -139,33 +159,48 @@ def yujiatou_room():
         return False
 
 
-# def mafangshan_stu_room():
-#     pass
-#
-#
-# def mafangshan_room():
-#     pass
+def mfs_room_stu():
+    pass
 
 
-def try_get_data(roomno, factorycode, area):
-    url = "http://cwsf.whut.edu.cn/MNetWorkUI/elecManage!querySydl10497"
-    data = f"roomno={roomno}&factorycode={factorycode}&area={area}"
-    respounce = session.post(url=url, headers=headers, data=data).json()
-    return respounce
+def mfs_room():
+    pass
 
 
+# 发信配置初始化
 def init_msg():
-    global config_dict
-    msg_dict = dict()
-    print("是否配置cqhttp？输入Y确认：")
-    choice_cqhttp = input()
-    if choice_cqhttp == "Y" or choice_cqhttp == "y":
+    global config_all
+    config_msg = dict()
+    while True:
+        print("是否配置cqhttp？(Y/N)")
+        is_send_cqhttp = input()
+        if is_send_cqhttp == "Y" or is_send_cqhttp == "y":
+            config_msg["cqhttp"] = set_cqhttp()
+            break
+        elif is_send_cqhttp == "N" or is_send_cqhttp == "n":
+            break
+        else:
+            print("输入错误")
+    while True:
+        print("是否配置邮件？(Y/N)")
+        is_send_mail = input()
+        if is_send_mail == "Y" or is_send_mail == "y":
+            config_msg["mail"] = set_mail()
+            break
+        elif is_send_mail == "N" or is_send_mail == "n":
+            break
+        else:
+            print("输入错误")
+    config_all["msg"] = config_msg
+
+
+def set_cqhttp():
+    while True:
         cqhttp_dict = {
             "url": "http://127.0.0.1:5700/send_msg",
             "uid": "",
             "gid": ""
         }
-        msg_dict["typ"] = 1
         print("输入cqhttp的http监听地址和端口（留空默认为127.0.0.1:5700）：")
         input_url = input()
         if input_url != "":
@@ -178,29 +213,53 @@ def init_msg():
         input_gid = input()
         if input_gid != "":
             cqhttp_dict["gid"] = input_gid
-        try_send_qq_msg(cqhttp_dict)
-        print("已发送测试消息，注意查收")
-        msg_dict["cqhttp"] = cqhttp_dict
-    print("是否配置邮件？输入Y确认：")
-    choice_mail = input()
-    if choice_mail == "Y" or choice_mail == "y":
+        try:
+            try_send_qq_msg(cqhttp_dict)
+        except requests.RequestException:
+            print("发送出现问题，开始重新设置")
+            continue
+        print("已发送测试消息，是否收到消息？(Y/N)")
+        is_receive = input()
+        if is_receive == "Y" or is_receive == "y":
+            break
+        elif is_receive == "N" or is_receive == "n":
+            print("开始重新设置")
+        else:
+            print("输入错误，默认开始重新设置")
+    return cqhttp_dict
+
+
+def set_mail():
+    while True:
         mail_dict = {
-            "ssl": False,
+            "ssl": bool(),
             "host": "",
-            "port": 25,
+            "port": int(),
             "account": "",
             "password": "",
             "sender": "",
             "receiver": ""
         }
-        print("是否使用SSL邮件？输入Y确认：")
-        choice_ssl = input()
-        if choice_ssl == "Y" or choice_ssl == "y":
-            mail_dict["ssl"] = True
+        while True:
+            print("是否使用SSL邮件？(Y/N)")
+            is_ssl = input()
+            if is_ssl == "Y" or is_ssl == "y":
+                mail_dict["ssl"] = True
+                break
+            elif is_ssl == "N" or is_ssl == "n":
+                mail_dict["ssl"] = False
+                break
+            else:
+                print("输入错误")
         print("输入SMTP服务器地址（如smtp.qq.com）：")
         mail_dict["host"] = input()
-        print("输入SMTP服务器端口（如465）：")
-        mail_dict["port"] = int(input())
+        while True:
+            print("输入SMTP服务器端口（如465）：")
+            try:
+                mail_dict["port"] = int(input())
+                break
+            except ValueError:
+                print("输入错误")
         print("输入账号：")
         mail_dict["account"] = input()
         print("输入密码：")
@@ -209,12 +268,23 @@ def init_msg():
         mail_dict["sender"] = input()
         print("输入收件人邮箱：")
         mail_dict["receiver"] = input()
-        try_send_mail(mail_dict)
-        print("已发送测试消息，注意查收")
-        msg_dict["mail"] = mail_dict
-    config_dict["msg"] = msg_dict
+        try:
+            try_send_mail(mail_dict)
+        except Exception:
+            print("发送出现问题，开始重新设置")
+            continue
+        print("已发送测试消息，是否收到消息？(Y/N)")
+        is_receive = input()
+        if is_receive == "Y" or is_receive == "y":
+            break
+        elif is_receive == "N" or is_receive == "n":
+            print("开始重新设置")
+        else:
+            print("输入错误，默认开始重新设置")
+    return mail_dict
 
 
+# 尝试发送qq消息
 def try_send_qq_msg(config):
     url = config["url"]
     data_user = {
@@ -231,6 +301,7 @@ def try_send_qq_msg(config):
         requests.get(url, params=data_group)
 
 
+# 尝试发送邮件
 def try_send_mail(config):
     if config["ssl"]:
         mail = smtplib.SMTP_SSL(config["host"], config["port"])
@@ -244,28 +315,28 @@ def try_send_mail(config):
     mail.close()
 
 
+# 保存配置文件
 def save_config():
-    print(f"配置文件内容预览：{config_dict}")
+    print(f"配置文件内容预览：{config_all}")
     config_file = open("./config.yaml", "w")
-    yaml.safe_dump(config_dict, config_file)
+    yaml.safe_dump(config_all, config_file)
     print(f"配置文件保存成功：config.yaml")
     config_file.close()
 
 
-def init():
+if __name__ == "__main__":
     print("开始设置配置文件 config.yaml")
-    print("=====账号=====")
-    if not init_account():
-        return
-    print("=====房间=====")
-    if not init_room():
-        return
+    while True:
+        print("=====账号=====")
+        if init_account():
+            break
+    while True:
+        print("=====房间=====")
+        if init_room():
+            break
     print("=====消息=====")
     init_msg()
     print("=====保存=====")
     save_config()
-    print("配置文件设置完毕")
-
-
-init()
-# try_send_mail()
+    print("配置文件设置完毕！")
+    print("注意：配置文件中含有账号密码敏感信息，注意防范泄露。")

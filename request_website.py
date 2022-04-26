@@ -2,16 +2,15 @@ import requests
 import yaml
 
 # 读入配置文件
-config_file = open("./config.yaml")
-config_dict = yaml.safe_load(config_file)
-config_file.close()
+with open("./config.yaml") as config_file:
+    config_all = yaml.safe_load(config_file)
 # 账号密码
-account = config_dict["account"]
-password = config_dict["password"]
+account = config_all["account"]
+password = config_all["password"]
 # 房间编号
-roomno = config_dict["room"]["roomno"]
-factorycode = config_dict["room"]["factorycode"]
-area = config_dict["room"]["area"]
+roomno = config_all["room"]["roomno"]
+factorycode = config_all["room"]["factorycode"]
+area = config_all["room"]["area"]
 
 # 登录取得的 SessionID
 session: requests.Session
@@ -48,6 +47,3 @@ def get_data():
     data = f"roomno={roomno}&factorycode={factorycode}&area={area}"
     respounce = session.post(url=url, headers=headers, data=data).json()
     return respounce
-
-# get_session_id()
-# print(get_data())

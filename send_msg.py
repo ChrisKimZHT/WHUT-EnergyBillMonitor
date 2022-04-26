@@ -5,26 +5,26 @@ from email.mime.text import MIMEText
 from email.utils import formataddr
 
 # 读入配置文件
-config_file = open("./config.yaml")
-config_dict = yaml.safe_load(config_file)
-config_file.close()
-# cqhttp 配置
+with open("./config.yaml") as config_file:
+    config_all = yaml.safe_load(config_file)
 cqhttp = False
 mail = False
-if "cqhttp" in config_dict["msg"].keys():
+# 如果有cqhttp配置，则读取
+if "cqhttp" in config_all["msg"].keys():
     cqhttp = True
-    url = "http://" + config_dict["msg"]["cqhttp"]["url"] + "/send_msg"
-    uid = config_dict["msg"]["cqhttp"]["uid"]
-    gid = config_dict["msg"]["cqhttp"]["gid"]
-if "mail" in config_dict["msg"].keys():
+    url = "http://" + config_all["msg"]["cqhttp"]["url"] + "/send_msg"
+    uid = config_all["msg"]["cqhttp"]["uid"]
+    gid = config_all["msg"]["cqhttp"]["gid"]
+# 如果有邮箱配置，则读取
+if "mail" in config_all["msg"].keys():
     mail = True
-    ssl = config_dict["msg"]["mail"]["ssl"]
-    host = config_dict["msg"]["mail"]["host"]
-    port = config_dict["msg"]["mail"]["port"]
-    account = config_dict["msg"]["mail"]["account"]
-    password = config_dict["msg"]["mail"]["password"]
-    sender = config_dict["msg"]["mail"]["sender"]
-    receiver = config_dict["msg"]["mail"]["receiver"]
+    ssl = config_all["msg"]["mail"]["ssl"]
+    host = config_all["msg"]["mail"]["host"]
+    port = config_all["msg"]["mail"]["port"]
+    account = config_all["msg"]["mail"]["account"]
+    password = config_all["msg"]["mail"]["password"]
+    sender = config_all["msg"]["mail"]["sender"]
+    receiver = config_all["msg"]["mail"]["receiver"]
 
 
 # 发送信息
