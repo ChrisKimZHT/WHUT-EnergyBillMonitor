@@ -46,7 +46,7 @@ def send_msg(text):
         if ssl:
             server = smtplib.SMTP_SSL(host, port)
         else:
-            server = smtplib.SMTP_SSL(host, port)
+            server = smtplib.SMTP(host, port)
         server.login(account, password)
         msg = MIMEText(text, "plain", "utf-8")
         msg["From"] = formataddr(["WHUT-EnergyBillMonitor", sender])
