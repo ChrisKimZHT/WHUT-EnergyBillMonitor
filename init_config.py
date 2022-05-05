@@ -318,11 +318,13 @@ def try_send_mail(config):
 # 保存配置文件
 def save_config():
     print(f"配置文件内容预览：{config_all}")
-    config_file = open("./config.yaml", "w")
-    yaml.safe_dump(config_all, config_file)
-    print(f"配置文件保存成功：config.yaml")
-    config_file.close()
-
+    with open("./config.yaml", "w") as config_file:
+        yaml.safe_dump(config_all, config_file)
+        print(f"配置文件保存成功：config.yaml")
+    with open("./history.txt", "w") as history_file:
+        history_file.write("0")
+        print(f"记录文件生成成功：history.txt")
+        
 
 if __name__ == "__main__":
     print("开始设置配置文件 config.yaml")
@@ -339,4 +341,3 @@ if __name__ == "__main__":
     print("=====保存=====")
     save_config()
     print("配置文件设置完毕！")
-    print("注意：配置文件中含有账号密码敏感信息，注意防范泄露。")
