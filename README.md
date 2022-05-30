@@ -6,6 +6,10 @@
 
 配置完成后，可通过 crontab 等手段定时运行，即可定时获取寝室电费情况，及时充值，防止意外停电。
 
+### 效果预览
+
+![Preview](https://assets.zouht.com/img/md/WHUT-EnergyBillMonitor-README-01.png)
+
 ### 功能介绍
 
 - **支持区域**
