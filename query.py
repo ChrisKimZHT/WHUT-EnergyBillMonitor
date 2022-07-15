@@ -32,7 +32,7 @@ def login() -> tuple:
         return False, session
 
 
-def mafangshan(session: requests.Session) -> dict:
+def mafangshan(session: requests.Session) -> tuple:
     log.info("进行马房山校区查询")
     headers = {
         "Accept": "application/json, text/javascript, */*; q=0.01",
@@ -54,10 +54,13 @@ def mafangshan(session: requests.Session) -> dict:
     log.debug(f"发送请求: {data}")
     respounce = session.post(url=url, headers=headers, data=data).json()
     log.debug(f"收到响应: {respounce}")
-    return respounce
+    if respounce["returncode"] == "SUCCESS":
+        return True, respounce
+    else:
+        return False, respounce
 
 
-def yujiatou(session: requests.Session) -> dict:
+def yujiatou(session: requests.Session) -> tuple:
     log.info("进行余家头校区查询")
     headers = {
         "Accept": "application/json, text/javascript, */*; q=0.01",
@@ -79,18 +82,34 @@ def yujiatou(session: requests.Session) -> dict:
     log.debug(f"发送请求: {data}")
     respounce = session.post(url=url, headers=headers, data=data).json()
     log.debug(f"收到响应: {respounce}")
-    return respounce
+    if respounce["returncode"] == "SUCCESS":
+        return True, respounce
+    else:
+        return False, respounce
 
 
 def query_data() -> dict:
-    ret = login()
-    if ret[0]:
-        if conf_dormitory["is_mafangshan"]:
-            return mafangshan(ret[1])
-        else:
-            return yujiatou(ret[1])
-    else:
-        pass
-
-
-print(query_data())
+    status, session = login()
+    try:
+        if status:  # 如果登陆成功
+            if conf_dormitory["is_mafangshan"]:  # 如果是马房山
+                status, resp_dict = mafangshan(session)
+                if status:  # 如果请求正常
+                    return {
+                        "status": True,
+                        "remain": float(resp_dict["remainPower"]),
+                        "total": float(resp_dict["ZVlaue"]),
+                        "time": None,
+                    }
+            else:  # 如果是余家头
+                status, resp_dict = yujiatou(session)
+                if status:  # 如果请求正常
+                    return {
+                        "status": True,
+                        "remain": float(resp_dict["roomlist"]["remainPower"]),
+                        "total": float(resp_dict["roomlist"]["ZVlaue"]),
+                        "time": resp_dict["roomlist"]["readTime"],
+                    }
+    except:
+        log.error("请求出现异常")
+    return {"status": False, }  # 异常情况

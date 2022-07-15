@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 from email.utils import formataddr
 
 # ===== 邮件设置 =====
-# 正确配置并启用后，每次填报后程序会发送电子邮件到对应账户。
+# 正确配置并启用后，每次查询后程序会发送电子邮件到对应账户。
 # 邮件发送使用SMTP协议，可在各大电子邮箱平台找到配置方法。
 mail = conf_notification["mail"]["enable"]  # 是否启用邮件
 ssl = conf_notification["mail"]["ssl"]  # 是否启用SSL
@@ -17,7 +17,7 @@ password = conf_notification["mail"]["password"]  # 发信密码
 sender = conf_notification["mail"]["sender"]  # 发信人邮箱
 receiver = conf_notification["mail"]["receiver"]  # 收信人邮箱
 # ===== go-cqhttp配置 =====
-# 正确配置并启用后，每次填报后程序会发送QQ消息到对应收信QQ号或QQ群。
+# 正确配置并启用后，每次查询后程序会发送QQ消息到对应收信QQ号或QQ群。
 # 需要正确配置go-cqhttp(https://github.com/Mrs4s/go-cqhttp)并启用HTTP API接口。
 # ！若你不知道这是什么，请不要启用！
 cqhttp = conf_notification["cqhttp"]["enable"]  # 是否启用go-cqhttp发信
@@ -68,7 +68,7 @@ def send_mail(text):
         server = smtplib.SMTP(host, port)
     server.login(account, password)
     mail_msg = MIMEText(text, "plain", "utf-8")
-    mail_msg["From"] = formataddr(["WHUT-AutoHealthReport", sender])
-    mail_msg["Subject"] = "【WHUT-AutoHealthReport】"
+    mail_msg["From"] = formataddr(["WHUT-EnergyBillMonitor", sender])
+    mail_msg["Subject"] = "【WHUT-EnergyBillMonitor】"
     server.sendmail(sender, receiver, mail_msg.as_string())
     server.close()
