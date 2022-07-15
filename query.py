@@ -89,6 +89,7 @@ def yujiatou(session: requests.Session) -> tuple:
 
 
 def query_data() -> dict:
+    log.info("=======数据查询=======")
     status, session = login()
     try:
         if status:  # 如果登陆成功

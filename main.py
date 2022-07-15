@@ -5,7 +5,6 @@ from notification import msg
 from history import get_history, save_history
 
 if __name__ == "__main__":
-    log.info("=======数据查询=======")
     log.info("开始请求数据")
     data = query_data()
     log.debug(f"取得数据: {data}")
