@@ -12,12 +12,12 @@
 
 ### 功能介绍
 
-- **支持区域**
+- **支持区域**（我也不知道为啥一个系统学校要分这么多）
     - 余家头电费
         - 学生区域
-        - ~~教工区域~~（不打算支持）
-    - ~~马房山学生电费~~（暂不支持）
-    - ~~马房山电费~~（不打算支持）
+        - ~~教工区域~~
+    - 马房山学生电费
+    - ~~马房山电费~~
 - **发信方式**
     - cqhttp
         - 私聊
@@ -33,9 +33,39 @@
 
 ### 使用方式
 
-请先运行 `init_config.py` 生成配置文件，按照程序操作后，将会自动生成包含账号密码、寝室号、发信方式的配置文件 `config.yaml`.
+**1. 获取寝室编号**
 
-配置文件生成后，即可运行 `main.py` 查询电费，可添加 crontab 定时运行指令 `python main.py`.
+1.1 访问学校缴费平台 `http://cwsf.whut.edu.cn/` ，如下图所示。
+
+![2](https://assets.zouht.com/img/md/WHUT-EnergyBillMonitor-README-02.png)
+
+1.2 登录账号，进入服务选择页面。选择校区（只支持红框内两个）
+
+![3](https://assets.zouht.com/img/md/WHUT-EnergyBillMonitor-README-03.png)
+
+1.3 进入以下页面后，按键盘 `F12` 打开开发者工具。
+
+![4](https://assets.zouht.com/img/md/WHUT-EnergyBillMonitor-README-04.png)
+
+如下图，首先选择 `Network(网络)` 选项卡，然后点击左上侧圆圈按钮，使其为红色圆圈即开始记录日志。然后**不要**关闭它，进行下一步操作。
+
+![5](https://assets.zouht.com/img/md/WHUT-EnergyBillMonitor-README-05.png)
+
+1.4 在网页选好你的寝室，使其能显示查询的结果。
+
+![6](https://assets.zouht.com/img/md/WHUT-EnergyBillMonitor-README-06.png)
+
+然后查看开发者工具，找到**最后一个**请求，点击它后会出现详细信息。在右侧选项卡点击 `Payload(预览)` ，然后**记录**下方的数值。 
+
+![7](https://assets.zouht.com/img/md/WHUT-EnergyBillMonitor-README-07.png)
+
+**2. 初始化程序**
+
+第一次运行，程序无法找到配置文件将会进行配置文件初始化操作。该操作是交互式的，请按照程序的提示准确填写相关信息，包括上一步获得的若干数值。
+
+**3. 运行程序**
+
+配置文件初始化后，今后再运行时，程序将会自动查询，无需人工介入。因此 Linux 用户可添加到 `crontab` 来实现定时的电量查询。
 
 ### 温馨提示
 
