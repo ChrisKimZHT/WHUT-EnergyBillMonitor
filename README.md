@@ -24,12 +24,14 @@
         - 群聊
     - 邮件
 
-### 所需模块
+### 运行方式
 
-- requests
-    - `pip install requests`
-- pyyaml
-    - `pip install PyYAML`
+- 从源码运行
+  - 确保系统有 `Python3` 环境
+  - 安装依赖: `pip install -r requirements.txt`
+  - 运行 `main.py`
+- 使用打包版本
+  - 在右侧 `Release` 直接下载打包版本运行
 
 ### 使用方式
 
